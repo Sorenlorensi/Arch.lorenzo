@@ -1,0 +1,54 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><title>Painel do escritório | Arch.Lorenzo</title><meta name="robots" content="noindex"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Playfair+Display&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F0EDE8;--gold:#B8935A;--ink:#1A1A1A}*{box-sizing:border-box;margin:0}
+body{font:300 14px/1.5 Inter,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}.sf{font-family:'Playfair Display',serif}
+.lb{font:500 10px Inter;letter-spacing:.18em;text-transform:uppercase}.w{max-width:1136px;margin:auto;padding:0 20px}
+header{background:#F6F4EF;border-bottom:1px solid #e2ded6}header .w{display:flex;justify-content:space-between;align-items:center;height:76px}
+.logo{font:1.4rem 'Playfair Display',serif}.logo small{margin-left:24px;color:#999}
+button,.bt{font:500 10px Inter;letter-spacing:.18em;text-transform:uppercase;padding:14px 20px;border:1px solid #d3cdc2;background:#F6F4EF;color:var(--ink);cursor:pointer;text-decoration:none}
+.k{background:var(--ink);color:#fff;border-color:var(--ink)}.g{background:var(--gold);color:#fff;border-color:var(--gold)}
+.tabs{display:flex;gap:8px;margin:40px 0}.row{display:flex;gap:16px;align-items:center;background:#F6F4EF;border:1px solid #e2ded6;padding:12px;margin-bottom:12px}
+.row img{width:112px;height:80px;object-fit:cover;background:#ddd}.row .i{flex:1}.row .c{color:var(--gold)}.row h3{font:400 1.2rem 'Playfair Display',serif;margin:2px 0}.row .m{color:#999;font-size:12px}
+.hd{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:22px}.hd h1{font:400 1.8rem 'Playfair Display',serif}.hd p{color:#888}
+.c2{background:#F6F4EF;border:1px solid #e2ded6;padding:16px;margin-bottom:12px}
+dialog{border:0;padding:30px;width:min(560px,94vw);background:#F6F4EF}dialog::backdrop{background:rgba(0,0,0,.5)}
+dialog form{display:grid;gap:14px}label{display:block;color:#777;margin-bottom:3px}input,select,textarea{width:100%;padding:10px;border:1px solid #d3cdc2;background:#fff;font:300 14px Inter}.r{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+#lg{max-width:380px;margin:18vh auto;background:#F6F4EF;padding:36px;display:grid;gap:14px}#lg h1{font:400 1.7rem 'Playfair Display',serif}#err,#pe{color:#a33;font-size:12px}
+</style></head><body>
+<form id="lg"><h1>Área do escritório</h1><p style="color:#888">Entre com a senha para editar os projetos do site.</p><input type="password" id="pw" placeholder="Senha" required><button class="g">Entrar</button><span id="err"></span></form>
+<div id="ad" hidden><header><div class="w"><div class="logo">Arch.Lorenzo<small class="lb">Painel do escritório</small></div><div><a class="bt" href="/" style="border:0">← Ver site</a> <button id="out">Sair</button></div></div></header>
+<div class="w"><div class="tabs"><button id="t1" class="k">Projetos</button><button id="t2">Contatos recebidos <span id="nc"></span></button></div>
+<div id="v1"><div class="hd"><div><h1>Projetos do portfólio</h1><p>Cadastre, edite e exclua os projetos exibidos no site.</p></div><button class="g" id="nw">+ Novo projeto</button></div><div id="pl"></div></div><div id="v2" hidden></div></div></div>
+<dialog id="dg"><form id="pf"><h2 class="sf" id="dt" style="font-weight:400"></h2><input type="hidden" id="id">
+<div><label class="lb">Nome do projeto</label><input id="ti" required></div>
+<div class="r" style="grid-template-columns:1fr 1fr"><div><label class="lb">Categoria</label><select id="ca"><option>Residencial</option><option>Escritório</option><option>Comercial</option><option>Paisagismo</option></select></div><div><label class="lb">Local</label><input id="lo" placeholder="Ex.: Vila Prudente SP"></div></div>
+<div class="r"><div><label class="lb">Área (m²)</label><input id="ar"></div><div><label class="lb">Ano</label><input id="ye"></div><div><label class="lb">Ordem</label><input id="so" type="number" value="1"></div></div>
+<div><label class="lb">Descrição</label><textarea id="de" rows="3"></textarea></div>
+<div><label class="lb">Imagem</label><input type="file" id="fi" accept="image/*"><small id="fh" style="color:#999"></small></div>
+<span id="pe"></span><div style="display:flex;gap:10px;justify-content:flex-end"><button type="button" id="cl">Cancelar</button><button class="g">Salvar</button></div></form></dialog>
+<script>
+const $=s=>document.querySelector(s);let T=sessionStorage.t||'';
+async function api(p,o={}){const r=await fetch('/api/'+p,{...o,headers:{authorization:'Bearer '+T}});const j=await r.json().catch(()=>({}));if(r.status===401&&T){sessionStorage.t=T='';location.reload()}if(!r.ok)throw Error(j.error||'Erro');return j}
+const send=(p,m,b)=>api(p,{method:m,body:JSON.stringify(b)});const mk=(t,h,c)=>{const e=document.createElement(t);if(h!=null)e.textContent=h;if(c)e.className=c;return e};
+function init(){$('#lg').hidden=!!T;$('#ad').hidden=!T;if(T){load();count()}}
+$('#lg').onsubmit=async e=>{e.preventDefault();try{const r=await fetch('/api/login',{method:'POST',body:JSON.stringify({password:$('#pw').value})});const j=await r.json();if(!r.ok)throw Error(j.error);sessionStorage.t=T=j.token;init()}catch(x){$('#err').textContent=x.message}};
+$('#out').onclick=()=>{sessionStorage.t=T='';location.reload()};
+function tab(n){$('#v1').hidden=n!==1;$('#v2').hidden=n!==2;$('#t1').className=n===1?'k':'';$('#t2').className=n===2?'k':'';if(n===2)msgs()}$('#t1').onclick=()=>tab(1);$('#t2').onclick=()=>tab(2);
+async function count(){try{$('#nc').textContent='('+(await api('contacts')).length+')'}catch(e){}}
+async function load(){const P=await (await fetch('/api/projects')).json();$('#t1').textContent='Projetos ('+P.length+')';const l=$('#pl');l.innerHTML='';
+ P.forEach(p=>{const r=mk('div','','row'),i=new Image();r.className='row';i.src='/api/image/'+p.id+'?v='+p.updated;const d=mk('div','','i');d.className='i';
+ d.append(mk('div',[p.category,p.location].filter(Boolean).join(' · '),'lb c'),mk('h3',p.title),mk('div',[p.area&&p.area+' m²',p.year,'ordem '+p.sort_order].filter(Boolean).join(' · '),'m'));
+ const e=mk('button','Editar'),x=mk('button','Excluir');
+ e.onclick=()=>edit(p);x.onclick=async()=>{if(confirm('Excluir "'+p.title+'"?')){await api('projects/'+p.id,{method:'DELETE'});load()}};r.append(i,d,e,x);l.append(r)})}
+function edit(p){$('#pf').reset();$('#pe').textContent='';$('#id').value=p?p.id:'';$('#dt').textContent=p?'Editar projeto':'Novo projeto';
+ if(p){$('#ti').value=p.title;$('#ca').value=p.category;$('#lo').value=p.location||'';$('#ar').value=p.area||'';$('#ye').value=p.year||'';$('#so').value=p.sort_order;$('#de').value=p.description||'';$('#fh').textContent='Deixe vazio para manter a imagem atual.'}else{$('#so').value=1;$('#fh').textContent=''}$('#dg').showModal()}
+$('#nw').onclick=()=>edit();$('#cl').onclick=()=>$('#dg').close();
+function shrink(f){return new Promise((ok,no)=>{const i=new Image();i.onload=()=>{const k=Math.min(1,1600/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=i.width*k;c.height=i.height*k;c.getContext('2d').drawImage(i,0,0,c.width,c.height);ok(c.toDataURL('image/jpeg',.8))};i.onerror=()=>no(Error('Imagem inválida'));i.src=URL.createObjectURL(f)})}
+$('#pf').onsubmit=async e=>{e.preventDefault();const id=$('#id').value,f=$('#fi').files[0];
+ try{if(!id&&!f)throw Error('Escolha uma imagem.');const b={title:$('#ti').value,category:$('#ca').value,location:$('#lo').value,area:$('#ar').value,year:$('#ye').value,sort_order:$('#so').value,description:$('#de').value};if(f)b.image=await shrink(f);
+ await send(id?'projects/'+id:'projects',id?'PUT':'POST',b);$('#dg').close();load()}catch(x){$('#pe').textContent=x.message}};
+async function msgs(){const v=$('#v2');v.innerHTML='';const d=await api('contacts');if(!d.length)v.append(mk('p','Nenhum contato recebido ainda.'));
+ d.forEach(c=>{const b=mk('div','','c2');b.className='c2';b.append(mk('strong',c.name),mk('div',[c.phone,c.email,c.address,'Prefere: '+c.reply_via,c.created].filter(Boolean).join(' · '),'m'),mk('p',c.message));const x=mk('button','Excluir');x.onclick=async()=>{await api('contacts/'+c.id,{method:'DELETE'});msgs();count()};b.append(x);v.append(b)})}
+init();
+</script></body></html>
